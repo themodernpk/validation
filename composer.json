@@ -1,7 +1,6 @@
 {
     "name": "webreinvent/validation",
     "description": "Use Illuminate Validation outside Laravel.",
-    "version": "3.0",
     "license": "MIT",
     "authors": [
         {
