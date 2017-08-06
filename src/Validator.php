@@ -6,6 +6,7 @@ use Illuminate\Validation\Factory;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Validation\DatabasePresenceVerifier;
 use Illuminate\Database\ConnectionResolverInterface;
+use Illuminate\Container\Container as IlluminateContainer;
 
 class Validator
 {
@@ -28,6 +29,8 @@ class Validator
      */
     public function __construct(Container $container = null)
     {
+        $container = $container ? : new IlluminateContainer;
+
         $this->factory = new Factory($this->getTranslator($container), $container);
 
         if ($container && $container->bound('db')) {
@@ -62,27 +65,6 @@ class Validator
     }
 
     /**
-     * Set the default language lines used by the translator.
-     *
-     * @return void
-     */
-    public function setDefaultLines()
-    {
-        $this->setLines(require __DIR__.'/validation.php');
-    }
-
-    /**
-     * Create a class alias.
-     *
-     * @param  string $alias
-     * @return void
-     */
-    public function classAlias($alias = 'Validator')
-    {
-        class_alias(get_class($this), $alias);
-    }
-
-    /**
      * Get the validation factory instance.
      *
      * @return \Illuminate\Contracts\Validation\Factory
@@ -104,7 +86,7 @@ class Validator
             return $container['translator'];
         }
 
-        return new Translator;
+        return new Translator(require __DIR__.'/lang/en.php');
     }
 
     /**
@@ -112,9 +94,13 @@ class Validator
      *
      * @return void
      */
-    public function setAsGlobal()
+    public static function instance()
     {
-        static::$instance = $this;
+        if (!static::$instance) {
+            static::$instance = new static;
+        }
+
+        return static::$instance;
     }
 
     /**
@@ -138,7 +124,7 @@ class Validator
      */
     public static function __callStatic($method, $arguments)
     {
-        $factory = static::$instance->getFactory();
+        $factory = static::instance()->getFactory();
 
         return call_user_func_array([$factory, $method], $arguments);
     }
